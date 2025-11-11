@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer utilities {
+  .entity-node {
+    @apply min-w-[180px] min-h-[60px] px-4 py-2 bg-white border-2 border-black;
+  }
+
+  .entity-node-rectangle {
+    @apply entity-node rounded-none;
+  }
+
+  .entity-node-rounded {
+    @apply entity-node rounded-lg;
+  }
+
+  .entity-node-ellipse {
+    @apply entity-node rounded-full;
+  }
+
+  .entity-node-dashed {
+    @apply border-dashed;
+  }
+
+  .entity-node-foreign {
+    @apply bg-legal-blue;
+  }
+}
