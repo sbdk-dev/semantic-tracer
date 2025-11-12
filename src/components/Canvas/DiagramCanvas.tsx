@@ -19,6 +19,7 @@ import ReactFlow, {
   OnEdgesChange,
   Panel,
   Node,
+  Edge,
   useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -27,6 +28,7 @@ import { EntityNode } from './EntityNode';
 import { OwnershipEdge } from './OwnershipEdge';
 import { ToolPanel } from './ToolPanel';
 import { PropertyPanel } from './PropertyPanel';
+import { EdgePropertyPanel } from './EdgePropertyPanel';
 import { SaveIndicator } from './SaveIndicator';
 import { getLayoutedElements } from '../../services/layout';
 import { useDiagramState, EntityType, EntityNodeData } from '../../hooks/useDiagramState';
@@ -57,8 +59,9 @@ export function DiagramCanvas() {
   const setEdges = useDiagramState((state) => state.setEdges);
   const addNode = useDiagramState((state) => state.addNode);
 
-  // Local state for selected node
+  // Local state for selected node/edge
   const [selectedNode, setSelectedNode] = useState<Node<EntityNodeData> | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
 
   // Auto-save hook
   const autoSaveStatus = useAutoSave({
@@ -183,13 +186,19 @@ export function DiagramCanvas() {
     [screenToFlowPosition, addNode]
   );
 
-  // Handle node selection
+  // Handle node/edge selection
   const onSelectionChange = useCallback(
-    (params: { nodes: Node[]; edges: any[] }) => {
-      if (params.nodes.length === 1) {
+    (params: { nodes: Node[]; edges: Edge[] }) => {
+      // Prioritize node selection
+      if (params.nodes.length === 1 && params.nodes[0]) {
         setSelectedNode(params.nodes[0] as Node<EntityNodeData>);
+        setSelectedEdge(null);
+      } else if (params.edges.length === 1 && params.edges[0]) {
+        setSelectedEdge(params.edges[0]);
+        setSelectedNode(null);
       } else {
         setSelectedNode(null);
+        setSelectedEdge(null);
       }
     },
     []
@@ -244,11 +253,17 @@ export function DiagramCanvas() {
         <SaveIndicator status={autoSaveStatus} />
       </div>
 
-      {/* Property Panel */}
+      {/* Property Panels */}
       {selectedNode && (
         <PropertyPanel
           selectedNode={selectedNode}
           onClose={() => setSelectedNode(null)}
+        />
+      )}
+      {selectedEdge && (
+        <EdgePropertyPanel
+          selectedEdge={selectedEdge}
+          onClose={() => setSelectedEdge(null)}
         />
       )}
     </div>
