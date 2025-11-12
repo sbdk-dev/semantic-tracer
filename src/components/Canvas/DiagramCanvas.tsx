@@ -217,6 +217,12 @@ export function DiagramCanvas() {
             type: 'ownership',
             markerEnd: undefined, // No arrowheads - vertical position shows hierarchy
           }}
+          // Enable multi-select
+          selectionOnDrag={true}
+          panOnDrag={[1, 2]} // Pan with middle or right mouse button
+          multiSelectionKeyCode="Shift" // Hold Shift to add to selection
+          deleteKeyCode={["Backspace", "Delete"]} // Delete selected items
+          selectNodesOnDrag={false} // Don't select when dragging single node
           fitView
           attributionPosition="bottom-left"
         >

@@ -14,6 +14,8 @@ export interface EntityNodeData {
   jurisdiction?: string;
   taxStatus?: 'us' | 'foreign' | 'passthrough';
   notes?: string;
+  backgroundColor?: string;
+  borderColor?: string;
 }
 
 export const EntityNode = memo(({ data, id, type }: NodeProps<EntityNodeData>) => {
@@ -112,7 +114,14 @@ export const EntityNode = memo(({ data, id, type }: NodeProps<EntityNodeData>) =
   };
 
   return (
-    <div className={getNodeClassName()} data-node-id={id}>
+    <div
+      className={getNodeClassName()}
+      data-node-id={id}
+      style={{
+        backgroundColor: data.backgroundColor,
+        borderColor: data.borderColor,
+      }}
+    >
       {/* Connection handles on all sides */}
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Top} id="top-source" />

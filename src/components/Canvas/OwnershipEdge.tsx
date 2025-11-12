@@ -30,6 +30,7 @@ export const OwnershipEdge = memo(
     sourcePosition,
     targetPosition,
     label,
+    selected,
   }: EdgeProps<OwnershipEdgeData>) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(label?.toString() || '100%');
@@ -70,7 +71,24 @@ export const OwnershipEdge = memo(
 
     return (
       <>
-        <BaseEdge id={id} path={edgePath} />
+        {/* Invisible wider path for easier clicking */}
+        <path
+          d={edgePath}
+          fill="none"
+          stroke="transparent"
+          strokeWidth={20}
+          className="react-flow__edge-interaction"
+        />
+
+        {/* Visible edge path */}
+        <BaseEdge
+          id={id}
+          path={edgePath}
+          style={{
+            strokeWidth: selected ? 3 : 2,
+            stroke: selected ? '#2563eb' : '#b1b1b7',
+          }}
+        />
         <EdgeLabelRenderer>
           <div
             style={{

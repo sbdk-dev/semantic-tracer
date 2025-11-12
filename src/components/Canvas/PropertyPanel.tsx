@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { Node } from 'reactflow';
-import { useDiagramState, EntityNodeData } from '../../hooks/useDiagramState';
+import { useDiagramState, EntityNodeData, EntityType } from '../../hooks/useDiagramState';
 
 interface PropertyPanelProps {
   selectedNode: Node<EntityNodeData> | null;
@@ -17,11 +17,14 @@ interface PropertyPanelProps {
 export function PropertyPanel({ selectedNode, onClose }: PropertyPanelProps) {
   const updateNode = useDiagramState((state) => state.updateNode);
   const deleteNode = useDiagramState((state) => state.deleteNode);
+  const setNodes = useDiagramState((state) => state.setNodes);
 
   const [label, setLabel] = useState('');
   const [jurisdiction, setJurisdiction] = useState('');
   const [taxStatus, setTaxStatus] = useState<'us' | 'foreign' | 'passthrough'>('us');
   const [notes, setNotes] = useState('');
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [borderColor, setBorderColor] = useState('#000000');
 
   // Load data when selectedNode changes
   useEffect(() => {
@@ -30,6 +33,8 @@ export function PropertyPanel({ selectedNode, onClose }: PropertyPanelProps) {
       setJurisdiction(selectedNode.data.jurisdiction || '');
       setTaxStatus(selectedNode.data.taxStatus || 'us');
       setNotes(selectedNode.data.notes || '');
+      setBackgroundColor(selectedNode.data.backgroundColor || '#ffffff');
+      setBorderColor(selectedNode.data.borderColor || '#000000');
     }
   }, [selectedNode]);
 
@@ -43,8 +48,21 @@ export function PropertyPanel({ selectedNode, onClose }: PropertyPanelProps) {
       jurisdiction,
       taxStatus,
       notes,
+      backgroundColor,
+      borderColor,
     });
     onClose();
+  };
+
+  const handleChangeType = (newType: EntityType) => {
+    // Change the node type
+    setNodes((nds) =>
+      nds.map((n) =>
+        n.id === selectedNode.id
+          ? { ...n, type: newType }
+          : n
+      )
+    );
   };
 
   const handleDelete = () => {
@@ -52,20 +70,6 @@ export function PropertyPanel({ selectedNode, onClose }: PropertyPanelProps) {
       deleteNode(selectedNode.id);
       onClose();
     }
-  };
-
-  const getEntityTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      corporation: 'Corporation',
-      llc: 'LLC',
-      partnership: 'Partnership',
-      individual: 'Individual',
-      trust: 'Trust',
-      disregarded: 'Disregarded Entity',
-      foreign: 'Foreign Entity',
-      asset: 'Asset',
-    };
-    return labels[type] || 'Entity';
   };
 
   return (
@@ -89,9 +93,20 @@ export function PropertyPanel({ selectedNode, onClose }: PropertyPanelProps) {
         <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
           Entity Type
         </label>
-        <div className="text-sm font-medium text-gray-900 px-3 py-2 bg-gray-50 rounded border border-gray-200">
-          {getEntityTypeLabel(selectedNode.type || '')}
-        </div>
+        <select
+          value={selectedNode.type || 'corporation'}
+          onChange={(e) => handleChangeType(e.target.value as EntityType)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+        >
+          <option value="corporation">Corporation</option>
+          <option value="llc">LLC</option>
+          <option value="partnership">Partnership</option>
+          <option value="individual">Individual</option>
+          <option value="trust">Trust</option>
+          <option value="disregarded">Disregarded Entity</option>
+          <option value="foreign">Foreign Entity</option>
+          <option value="asset">Asset</option>
+        </select>
       </div>
 
       {/* Form Fields */}
@@ -152,6 +167,32 @@ export function PropertyPanel({ selectedNode, onClose }: PropertyPanelProps) {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             placeholder="Add compliance notes, ownership details, etc."
           />
+        </div>
+
+        {/* Colors */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Background Color
+            </label>
+            <input
+              type="color"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+              className="w-full h-10 border border-gray-300 rounded cursor-pointer"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Border Color
+            </label>
+            <input
+              type="color"
+              value={borderColor}
+              onChange={(e) => setBorderColor(e.target.value)}
+              className="w-full h-10 border border-gray-300 rounded cursor-pointer"
+            />
+          </div>
         </div>
       </div>
 

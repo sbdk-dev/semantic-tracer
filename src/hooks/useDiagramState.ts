@@ -29,6 +29,8 @@ export interface EntityNodeData {
   jurisdiction?: string;
   taxStatus?: 'us' | 'foreign' | 'passthrough';
   notes?: string;
+  backgroundColor?: string;
+  borderColor?: string;
 }
 
 interface DiagramState {
