@@ -2,37 +2,31 @@
  * DiagramCanvas Component
  *
  * Main React Flow canvas component for legal entity diagrams.
- * Handles rendering, interactions, and state management.
+ * Handles rendering, interactions, and state management with Zustand.
  */
 
 import { useCallback } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
   Controls,
   Background,
   MiniMap,
   NodeTypes,
-  useNodesState,
-  useEdgesState,
   addEdge,
   Connection,
   OnConnect,
   OnNodesChange,
   OnEdgesChange,
   Panel,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 import { EntityNode } from './EntityNode';
+import { ToolPanel } from './ToolPanel';
+import { SaveIndicator } from './SaveIndicator';
 import { getLayoutedElements } from '../../services/layout';
-
-interface DiagramCanvasProps {
-  initialNodes?: Node[];
-  initialEdges?: Edge[];
-  onNodesChange?: (nodes: Node[]) => void;
-  onEdgesChange?: (edges: Edge[]) => void;
-}
+import { useDiagramState, EntityType } from '../../hooks/useDiagramState';
+import { useAutoSave } from '../../hooks/useAutoSave';
 
 // Define custom node types
 const nodeTypes: NodeTypes = {
@@ -46,40 +40,60 @@ const nodeTypes: NodeTypes = {
   asset: EntityNode,
 };
 
-export function DiagramCanvas({
-  initialNodes = [],
-  initialEdges = [],
-  onNodesChange: onNodesChangeProp,
-  onEdgesChange: onEdgesChangeProp,
-}: DiagramCanvasProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+export function DiagramCanvas() {
+  // Zustand state
+  const nodes = useDiagramState((state) => state.nodes);
+  const edges = useDiagramState((state) => state.edges);
+  const setNodes = useDiagramState((state) => state.setNodes);
+  const setEdges = useDiagramState((state) => state.setEdges);
+  const addNode = useDiagramState((state) => state.addNode);
 
-  // Handle node changes and notify parent
-  const handleNodesChange: OnNodesChange = useCallback(
+  // Auto-save hook
+  const autoSaveStatus = useAutoSave({
+    interval: 30000, // 30 seconds
+    debounceDelay: 2000, // 2 seconds
+    enabled: true,
+  });
+
+  // React Flow instance for viewport calculations
+  const { project } = useReactFlow();
+
+  // Handle node changes
+  const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
-      onNodesChange(changes);
-      if (onNodesChangeProp) {
-        // Get updated nodes after change
-        setTimeout(() => {
-          onNodesChangeProp(nodes);
-        }, 0);
-      }
+      setNodes((nds) => {
+        // Apply React Flow's internal node changes
+        const updated = changes.reduce((acc, change) => {
+          if (change.type === 'position' && change.position) {
+            return acc.map((n) =>
+              n.id === change.id ? { ...n, position: change.position! } : n
+            );
+          }
+          if (change.type === 'remove') {
+            return acc.filter((n) => n.id !== change.id);
+          }
+          return acc;
+        }, nds);
+        return updated;
+      });
     },
-    [onNodesChange, onNodesChangeProp, nodes]
+    [setNodes]
   );
 
-  // Handle edge changes and notify parent
-  const handleEdgesChange: OnEdgesChange = useCallback(
+  // Handle edge changes
+  const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
-      onEdgesChange(changes);
-      if (onEdgesChangeProp) {
-        setTimeout(() => {
-          onEdgesChangeProp(edges);
-        }, 0);
-      }
+      setEdges((eds) => {
+        const updated = changes.reduce((acc, change) => {
+          if (change.type === 'remove') {
+            return acc.filter((e) => e.id !== change.id);
+          }
+          return acc;
+        }, eds);
+        return updated;
+      });
     },
-    [onEdgesChange, onEdgesChangeProp, edges]
+    [setEdges]
   );
 
   // Handle new connections
@@ -100,6 +114,24 @@ export function DiagramCanvas({
     [setEdges]
   );
 
+  // Handle adding nodes from palette
+  const handleAddNode = useCallback(
+    (type: EntityType) => {
+      // Add node at viewport center
+      // Use viewport dimensions to calculate center
+      const viewportCenter = {
+        x: window.innerWidth / 2 - 320, // Account for tool panel width
+        y: window.innerHeight / 2,
+      };
+
+      // Convert to flow coordinates
+      const position = project(viewportCenter);
+
+      addNode(type, position);
+    },
+    [addNode, project]
+  );
+
   // Apply auto-layout
   const handleAutoLayout = useCallback(() => {
     const layouted = getLayoutedElements(nodes, edges);
@@ -108,30 +140,39 @@ export function DiagramCanvas({
   }, [nodes, edges, setNodes, setEdges]);
 
   return (
-    <div className="w-full h-full" style={{ height: '600px' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-        attributionPosition="bottom-left"
-      >
-        <Background />
-        <Controls />
-        <MiniMap />
-        <Panel position="top-right">
-          <button
-            onClick={handleAutoLayout}
-            data-testid="auto-layout-button"
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 shadow-lg"
-          >
-            Auto Layout
-          </button>
-        </Panel>
-      </ReactFlow>
+    <div className="flex h-full w-full">
+      {/* Entity Palette */}
+      <ToolPanel onAddNode={handleAddNode} />
+
+      {/* Main Canvas */}
+      <div className="flex-1 relative">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+          attributionPosition="bottom-left"
+        >
+          <Background />
+          <Controls />
+          <MiniMap />
+          <Panel position="top-right">
+            <button
+              onClick={handleAutoLayout}
+              data-testid="auto-layout-button"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 shadow-lg"
+            >
+              Auto Layout
+            </button>
+          </Panel>
+        </ReactFlow>
+
+        {/* Save Status Indicator */}
+        <SaveIndicator status={autoSaveStatus} />
+      </div>
     </div>
   );
 }
