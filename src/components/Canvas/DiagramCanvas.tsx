@@ -116,6 +116,7 @@ export function DiagramCanvas() {
         id: `edge-${connection.source}-${connection.target}`,
         type: 'ownership',
         label: '100%',
+        markerEnd: undefined, // No arrowheads - vertical position shows hierarchy
         data: {
           ownershipType: 'both',
           votingPercentage: 100,
@@ -212,7 +213,10 @@ export function DiagramCanvas() {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          defaultEdgeOptions={{ type: 'ownership' }}
+          defaultEdgeOptions={{
+            type: 'ownership',
+            markerEnd: undefined, // No arrowheads - vertical position shows hierarchy
+          }}
           fitView
           attributionPosition="bottom-left"
         >
