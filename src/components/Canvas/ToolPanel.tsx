@@ -79,6 +79,11 @@ const ENTITY_TOOLS: EntityTool[] = [
 ];
 
 export function ToolPanel({ onAddNode }: ToolPanelProps) {
+  const handleDragStart = (event: React.DragEvent, type: EntityType) => {
+    event.dataTransfer.setData('application/reactflow/type', type);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <div
       className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto"
@@ -90,12 +95,14 @@ export function ToolPanel({ onAddNode }: ToolPanelProps) {
 
       <div className="space-y-2">
         {ENTITY_TOOLS.map((tool) => (
-          <button
+          <div
             key={tool.type}
+            draggable
+            onDragStart={(e) => handleDragStart(e, tool.type)}
             onClick={() => onAddNode(tool.type)}
             data-testid={`add-entity-${tool.type}`}
-            className="w-full group"
-            title={tool.description}
+            className="w-full group cursor-grab active:cursor-grabbing"
+            title={`${tool.description} (drag or click to add)`}
           >
             <div className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors">
               {/* Preview box */}
@@ -122,14 +129,14 @@ export function ToolPanel({ onAddNode }: ToolPanelProps) {
                 <div className="text-xs text-gray-500">{tool.description}</div>
               </div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
       {/* Help text */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <p className="text-xs text-gray-500 leading-relaxed">
-          Click any entity type to add it to the canvas. You can then drag it to position and double-click to edit.
+          <strong>Drag</strong> any entity onto the canvas, or <strong>click</strong> to add at center. Double-click nodes to edit names.
         </p>
       </div>
     </div>

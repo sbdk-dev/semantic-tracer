@@ -5,8 +5,9 @@
  * Supports 8 entity types with proper styling and inline editing.
  */
 
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
+import { useDiagramState } from '../../hooks/useDiagramState';
 
 export interface EntityNodeData {
   label: string;
@@ -16,25 +17,41 @@ export interface EntityNodeData {
 }
 
 export const EntityNode = memo(({ data, id, type }: NodeProps<EntityNodeData>) => {
+  const updateNode = useDiagramState((state) => state.updateNode);
+
   const [isEditing, setIsEditing] = useState(false);
   const [label, setLabel] = useState(data.label);
+
+  // Update local state when data changes
+  useEffect(() => {
+    setLabel(data.label);
+  }, [data.label]);
 
   const handleDoubleClick = useCallback(() => {
     setIsEditing(true);
   }, []);
 
-  const handleBlur = useCallback(() => {
+  const handleSave = useCallback(() => {
     setIsEditing(false);
-    // In a real implementation, this would update the node data via React Flow
-  }, []);
+    if (label.trim() !== data.label) {
+      updateNode(id, { label: label.trim() });
+    }
+  }, [id, label, data.label, updateNode]);
+
+  const handleBlur = useCallback(() => {
+    handleSave();
+  }, [handleSave]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
+        handleSave();
+      } else if (e.key === 'Escape') {
+        setLabel(data.label);
         setIsEditing(false);
       }
     },
-    []
+    [handleSave, data.label]
   );
 
   // Get entity-specific styling
@@ -96,7 +113,18 @@ export const EntityNode = memo(({ data, id, type }: NodeProps<EntityNodeData>) =
 
   return (
     <div className={getNodeClassName()} data-node-id={id}>
-      <Handle type="target" position={Position.Top} />
+      {/* Connection handles on all sides */}
+      <Handle type="target" position={Position.Top} id="top" />
+      <Handle type="source" position={Position.Top} id="top-source" />
+
+      <Handle type="target" position={Position.Bottom} id="bottom" />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" />
+
+      <Handle type="target" position={Position.Left} id="left" />
+      <Handle type="source" position={Position.Left} id="left-source" />
+
+      <Handle type="target" position={Position.Right} id="right" />
+      <Handle type="source" position={Position.Right} id="right-source" />
 
       <div className="text-xs text-gray-500 mb-1">{getEntityTypeLabel()}</div>
 
@@ -126,8 +154,6 @@ export const EntityNode = memo(({ data, id, type }: NodeProps<EntityNodeData>) =
       {data.notes && (
         <div className="text-xs text-gray-500 mt-1 italic">{data.notes}</div>
       )}
-
-      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 });

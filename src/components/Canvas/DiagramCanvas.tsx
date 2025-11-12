@@ -5,27 +5,31 @@
  * Handles rendering, interactions, and state management with Zustand.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import ReactFlow, {
   Controls,
   Background,
   MiniMap,
   NodeTypes,
+  EdgeTypes,
   addEdge,
   Connection,
   OnConnect,
   OnNodesChange,
   OnEdgesChange,
   Panel,
+  Node,
   useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 import { EntityNode } from './EntityNode';
+import { OwnershipEdge } from './OwnershipEdge';
 import { ToolPanel } from './ToolPanel';
+import { PropertyPanel } from './PropertyPanel';
 import { SaveIndicator } from './SaveIndicator';
 import { getLayoutedElements } from '../../services/layout';
-import { useDiagramState, EntityType } from '../../hooks/useDiagramState';
+import { useDiagramState, EntityType, EntityNodeData } from '../../hooks/useDiagramState';
 import { useAutoSave } from '../../hooks/useAutoSave';
 
 // Define custom node types
@@ -40,6 +44,11 @@ const nodeTypes: NodeTypes = {
   asset: EntityNode,
 };
 
+// Define custom edge types
+const edgeTypes: EdgeTypes = {
+  ownership: OwnershipEdge,
+};
+
 export function DiagramCanvas() {
   // Zustand state
   const nodes = useDiagramState((state) => state.nodes);
@@ -47,6 +56,9 @@ export function DiagramCanvas() {
   const setNodes = useDiagramState((state) => state.setNodes);
   const setEdges = useDiagramState((state) => state.setEdges);
   const addNode = useDiagramState((state) => state.addNode);
+
+  // Local state for selected node
+  const [selectedNode, setSelectedNode] = useState<Node<EntityNodeData> | null>(null);
 
   // Auto-save hook
   const autoSaveStatus = useAutoSave({
@@ -56,7 +68,7 @@ export function DiagramCanvas() {
   });
 
   // React Flow instance for viewport calculations
-  const { project } = useReactFlow();
+  const { project, screenToFlowPosition, fitView } = useReactFlow();
 
   // Handle node changes
   const onNodesChange: OnNodesChange = useCallback(
@@ -102,6 +114,7 @@ export function DiagramCanvas() {
       const newEdge = {
         ...connection,
         id: `edge-${connection.source}-${connection.target}`,
+        type: 'ownership',
         label: '100%',
         data: {
           ownershipType: 'both',
@@ -137,7 +150,49 @@ export function DiagramCanvas() {
     const layouted = getLayoutedElements(nodes, edges);
     setNodes(layouted.nodes);
     setEdges(layouted.edges);
-  }, [nodes, edges, setNodes, setEdges]);
+
+    // Center and zoom to fit all nodes after layout
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 0);
+  }, [nodes, edges, setNodes, setEdges, fitView]);
+
+  // Handle drag over (allow drop)
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  // Handle drop
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow/type') as EntityType;
+      if (!type) return;
+
+      // Convert screen coordinates to flow coordinates
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      addNode(type, position);
+    },
+    [screenToFlowPosition, addNode]
+  );
+
+  // Handle node selection
+  const onSelectionChange = useCallback(
+    (params: { nodes: Node[]; edges: any[] }) => {
+      if (params.nodes.length === 1) {
+        setSelectedNode(params.nodes[0] as Node<EntityNodeData>);
+      } else {
+        setSelectedNode(null);
+      }
+    },
+    []
+  );
 
   return (
     <div className="flex h-full w-full">
@@ -152,7 +207,12 @@ export function DiagramCanvas() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onSelectionChange={onSelectionChange}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={{ type: 'ownership' }}
           fitView
           attributionPosition="bottom-left"
         >
@@ -173,6 +233,14 @@ export function DiagramCanvas() {
         {/* Save Status Indicator */}
         <SaveIndicator status={autoSaveStatus} />
       </div>
+
+      {/* Property Panel */}
+      {selectedNode && (
+        <PropertyPanel
+          selectedNode={selectedNode}
+          onClose={() => setSelectedNode(null)}
+        />
+      )}
     </div>
   );
 }

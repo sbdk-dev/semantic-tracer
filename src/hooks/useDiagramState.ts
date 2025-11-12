@@ -46,6 +46,7 @@ interface DiagramState {
   setEdges: (edges: Edge[] | ((edges: Edge[]) => Edge[])) => void;
   addNode: (type: EntityType, position: { x: number; y: number }) => void;
   updateNode: (id: string, data: Partial<EntityNodeData>) => void;
+  updateEdge: (id: string, updates: Partial<Edge>) => void;
   deleteNode: (id: string) => void;
   selectNode: (id: string | null) => void;
 
@@ -152,6 +153,23 @@ export const useDiagramState = create<DiagramState>((set, get) => ({
     trackDiagramEvent('diagram_modified', {
       action: 'update_node',
       nodeId: id,
+    });
+  },
+
+  // Update edge
+  updateEdge: (id, updates) => {
+    set((state) => ({
+      edges: state.edges.map((edge) =>
+        edge.id === id
+          ? { ...edge, ...updates }
+          : edge
+      ),
+      isDirty: true,
+    }));
+
+    trackDiagramEvent('diagram_modified', {
+      action: 'update_edge',
+      edgeId: id,
     });
   },
 
