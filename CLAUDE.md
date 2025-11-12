@@ -50,7 +50,7 @@
 
 ### Phase 1: Core Canvas (Weeks 1-2)
 **Goal**: React Flow canvas with manual entity creation + PostHog tracking
-**Status**: 🟢 Core Implementation Complete (Day 9-10)
+**Status**: 🟢 Phase 1 Complete (Day 11-12)
 **Last Updated**: 2025-11-12
 
 **Tasks:**
@@ -63,17 +63,21 @@
 - [x] Auto-layout button (dagre integration)
 - [x] LocalStorage save/load services
 - [x] PostHog tracking hooks
-- [ ] Entity palette UI (click to add) - **Next**
-- [ ] Zustand store integration - **Next**
-- [ ] Auto-save mechanism (30s) - **Next**
+- [x] Entity palette UI (click to add)
+- [x] Zustand store integration
+- [x] Auto-save mechanism (30s)
 
-**Implementation Complete (Day 9-10):**
+**Implementation Complete (Day 9-12):**
 - ✅ Layout service with Dagre (~200 lines, <3s for 50 nodes)
 - ✅ Storage service with LocalStorage (~250 lines)
 - ✅ Claude API service with retry logic (~300 lines, <3s P95)
-- ✅ DiagramCanvas React Flow component (~100 lines)
+- ✅ DiagramCanvas React Flow component (~270 lines)
 - ✅ EntityNode component - 8 types (~150 lines)
 - ✅ PostHog performance tracking (~150 lines)
+- ✅ Zustand store with persistence (~270 lines)
+- ✅ ToolPanel entity palette (~130 lines)
+- ✅ AutoSave hook (~120 lines)
+- ✅ SaveIndicator component (~90 lines)
 - ✅ TypeScript strict mode (100% coverage)
 - ✅ [DAY-9-10-PERFORMANCE-TESTING.md](DAY-9-10-PERFORMANCE-TESTING.md) - Complete docs
 - ✅ [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md) - Architecture docs
@@ -86,12 +90,14 @@
 **Key Files:**
 - ✅ `src/components/Canvas/DiagramCanvas.tsx` - Main React Flow wrapper
 - ✅ `src/components/Canvas/EntityNode.tsx` - Custom node component (handles all 8 types)
+- ✅ `src/components/Canvas/ToolPanel.tsx` - Entity palette with 8 entity types
+- ✅ `src/components/Canvas/SaveIndicator.tsx` - Save status UI
 - ✅ `src/services/layout.ts` - Dagre auto-layout integration
 - ✅ `src/services/storage.ts` - LocalStorage persistence
 - ✅ `src/services/claude.ts` - Claude API client
 - ✅ `src/hooks/usePostHog.ts` - Performance tracking
-- ⏳ `src/components/Canvas/ToolPanel.tsx` - Entity palette (TBD)
-- ⏳ `src/hooks/useDiagramState.ts` - Zustand store (TBD)
+- ✅ `src/hooks/useDiagramState.ts` - Zustand store
+- ✅ `src/hooks/useAutoSave.ts` - Auto-save hook
 
 **See Also:**
 - [DAY-9-10-PERFORMANCE-TESTING.md](DAY-9-10-PERFORMANCE-TESTING.md) - Full implementation details

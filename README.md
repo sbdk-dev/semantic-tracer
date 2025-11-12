@@ -2,7 +2,7 @@
 
 Legal entity diagramming tool for M&A attorneys and corporate structure charts.
 
-**Status:** 🟢 Phase 1 - Core Implementation Complete (Day 9-10)
+**Status:** 🟢 Phase 1 - Entity Palette Complete (Day 11-12)
 **Sprint:** Week 2 of 6
 **Last Updated:** 2025-11-12
 
@@ -10,24 +10,22 @@ Legal entity diagramming tool for M&A attorneys and corporate structure charts.
 > **Latest:** See [DAY-9-10-PERFORMANCE-TESTING.md](DAY-9-10-PERFORMANCE-TESTING.md) for implementation details
 > **Tech Docs:** See [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md) for architecture
 
-## What's New (Day 9-10)
+## What's New (Day 11-12)
 
-✅ **Core Services Implemented:**
+✅ **Entity Palette & State Management:**
+- Zustand store with centralized state management (270 lines)
+- Entity palette UI with 8 entity types (130 lines)
+- Auto-save with 30s interval and 2s debounce (120 lines)
+- Save status indicator with auto-hide (90 lines)
+- Full DiagramCanvas integration with React Flow (270 lines)
+
+✅ **Previous (Day 9-10):**
 - Layout service with Dagre auto-layout (50+ nodes in <3s)
 - Storage service with LocalStorage persistence
 - Claude API service with retry logic and legal prompts
 - PostHog analytics integration
-
-✅ **React Components Ready:**
-- DiagramCanvas with React Flow integration
 - EntityNode component (8 legal entity types)
-- Professional styling and inline editing
-
-✅ **Performance Infrastructure:**
-- Comprehensive test suite (100+ tests)
-- Stress testing for 50-200 nodes
 - TypeScript strict mode (100% coverage)
-- Full documentation (1,200+ lines)
 
 ## Quick Start
 
@@ -66,7 +64,7 @@ npm run test:stress  # Performance tests
 | **Build** | Vite 5 | Fast dev server & bundler |
 | **Canvas** | React Flow 11 | Diagram rendering |
 | **Layout** | Dagre | Auto-layout algorithm |
-| **State** | Zustand 4 | State management (TBD) |
+| **State** | Zustand 4 | State management |
 | **Styling** | Tailwind CSS 3 | Utility-first CSS |
 | **AI** | Claude Sonnet 4.5 | Diagram generation |
 | **Analytics** | PostHog | Performance tracking |
@@ -80,13 +78,17 @@ lawdraw/
 │   ├── components/
 │   │   └── Canvas/
 │   │       ├── DiagramCanvas.tsx    # ✅ React Flow wrapper
-│   │       └── EntityNode.tsx       # ✅ Custom entity nodes
+│   │       ├── EntityNode.tsx       # ✅ Custom entity nodes
+│   │       ├── ToolPanel.tsx        # ✅ Entity palette
+│   │       └── SaveIndicator.tsx    # ✅ Save status UI
 │   ├── services/
 │   │   ├── layout.ts                # ✅ Dagre auto-layout
 │   │   ├── storage.ts               # ✅ LocalStorage persistence
 │   │   └── claude.ts                # ✅ Claude API integration
 │   ├── hooks/
-│   │   └── usePostHog.ts            # ✅ Performance tracking
+│   │   ├── usePostHog.ts            # ✅ Performance tracking
+│   │   ├── useDiagramState.ts       # ✅ Zustand store
+│   │   └── useAutoSave.ts           # ✅ Auto-save hook
 │   ├── constants/
 │   │   ├── legalDefaults.ts         # Legal entity styles
 │   │   └── prompts.ts               # Claude system prompts
@@ -129,26 +131,29 @@ npm run test:stress     # Performance/stress tests
 
 ## Implementation Status
 
-### ✅ Phase 1: Core Services (Day 9-10)
+### ✅ Phase 1: Core Implementation Complete (Day 9-12)
 
 | Component | Status | Lines | Performance |
 |-----------|--------|-------|-------------|
 | Layout Service | ✅ Complete | ~200 | <3s for 50 nodes |
 | Storage Service | ✅ Complete | ~250 | <100ms save/load |
 | Claude API Service | ✅ Complete | ~300 | <3s P95 generation |
-| DiagramCanvas | ✅ Complete | ~100 | React Flow optimized |
+| DiagramCanvas | ✅ Complete | ~270 | React Flow optimized |
 | EntityNode | ✅ Complete | ~150 | 8 entity types |
 | PostHog Integration | ✅ Complete | ~150 | Event tracking |
+| Zustand Store | ✅ Complete | ~270 | Centralized state |
+| ToolPanel | ✅ Complete | ~130 | Entity palette |
+| AutoSave Hook | ✅ Complete | ~120 | 30s interval |
+| SaveIndicator | ✅ Complete | ~90 | Auto-hide UI |
 
-**Total Implementation:** ~1,150 lines of production code
+**Total Implementation:** ~2,030 lines of production code
 
-### 🔄 Phase 1: Remaining (Day 11+)
+### 🔄 Phase 1: Remaining (Day 13+)
 
-- [ ] Entity palette UI (click to add)
-- [ ] Zustand store implementation
-- [ ] Auto-save mechanism (30s interval)
+- [ ] Manual testing with entity palette
 - [ ] Basic PDF export
 - [ ] First stress test validation
+- [ ] First UAT session with partner lawyer
 
 ### ⏳ Phase 2: AI UI (Weeks 3-4)
 
@@ -196,11 +201,11 @@ VITE_POSTHOG_HOST=https://app.posthog.com
 
 ## Next Steps
 
-1. **Run stress tests** to validate performance targets
-2. **Implement entity palette** for manual node creation
-3. **Add auto-save** with 30-second interval
-4. **First UAT session** with partner lawyer (Week 2)
-5. **Begin Phase 2** AI UI implementation
+1. **Manual testing** - Test entity palette and auto-save features (`npm run dev`)
+2. **Run stress tests** - Validate performance targets (requires Phase 2 AI UI)
+3. **First UAT session** - Partner lawyer validation (Week 2)
+4. **Basic PDF export** - Print-to-PDF functionality
+5. **Begin Phase 2** - AI UI implementation (GenerateDialog, ChatAssistant)
 
 ## Contributing
 
@@ -216,6 +221,6 @@ Proprietary - All Rights Reserved
 
 ---
 
-**Last Build:** 2025-11-12 (Day 9-10)
+**Last Build:** 2025-11-12 (Day 11-12)
 **Branch:** `claude/day-9-10-performance-testing-011CV4g74R2S1VRwb8oGDHBE`
-**Commit:** `f647ffe` - feat(core): implement Day 9-10 performance testing foundation
+**Commit:** `61c1299` - feat(day-11-12): implement entity palette, Zustand store, and auto-save
