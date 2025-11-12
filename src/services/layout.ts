@@ -28,6 +28,7 @@ const DEFAULT_OPTIONS: Required<LayoutOptions> = {
 
 /**
  * Apply automatic layout to nodes and edges using Dagre algorithm
+ * Optimizes edge routing by selecting the best handles based on node positions
  */
 export function getLayoutedElements(
   nodes: Node[],
@@ -52,11 +53,14 @@ export function getLayoutedElements(
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  // Configure graph
+  // Configure graph for hierarchical layout
   dagreGraph.setGraph({
     rankdir: opts.direction,
     ranksep: opts.rankSep,
     nodesep: opts.nodeSep,
+    edgesep: 50, // Add spacing between edges
+    marginx: 20,
+    marginy: 20,
   });
 
   // Add nodes to graph
@@ -92,10 +96,95 @@ export function getLayoutedElements(
     } as Node;
   });
 
+  // Create a position map for quick lookup
+  const nodePositions = new Map(
+    layoutedNodes.map((node) => [
+      node.id,
+      {
+        x: node.position.x + opts.nodeWidth / 2, // Center X
+        y: node.position.y + opts.nodeHeight / 2, // Center Y
+      },
+    ])
+  );
+
+  // Optimize edges to use the best handles
+  const layoutedEdges: Edge[] = edges.map((edge) => {
+    const sourcePos = nodePositions.get(edge.source);
+    const targetPos = nodePositions.get(edge.target);
+
+    if (!sourcePos || !targetPos) {
+      return edge;
+    }
+
+    // Calculate the best handles based on relative positions
+    const { sourceHandle, targetHandle } = getBestHandles(
+      sourcePos,
+      targetPos,
+      opts.direction
+    );
+
+    return {
+      ...edge,
+      sourceHandle,
+      targetHandle,
+    };
+  });
+
   return {
     nodes: layoutedNodes,
-    edges,
+    edges: layoutedEdges,
   };
+}
+
+/**
+ * Determine the best source and target handles based on node positions
+ */
+function getBestHandles(
+  sourcePos: { x: number; y: number },
+  targetPos: { x: number; y: number },
+  direction: LayoutDirection
+): { sourceHandle: string; targetHandle: string } {
+  const dx = targetPos.x - sourcePos.x;
+  const dy = targetPos.y - sourcePos.y;
+
+  // For vertical layouts (TB/BT), prioritize vertical handles
+  if (direction === 'TB' || direction === 'BT') {
+    // If target is below source (normal hierarchy)
+    if (dy > 50) {
+      return { sourceHandle: 'bottom-source', targetHandle: 'top' };
+    }
+    // If target is above source (reverse)
+    if (dy < -50) {
+      return { sourceHandle: 'top-source', targetHandle: 'bottom' };
+    }
+    // If mostly horizontal, use left/right
+    if (Math.abs(dx) > Math.abs(dy)) {
+      return dx > 0
+        ? { sourceHandle: 'right-source', targetHandle: 'left' }
+        : { sourceHandle: 'left-source', targetHandle: 'right' };
+    }
+    // Default to vertical
+    return { sourceHandle: 'bottom-source', targetHandle: 'top' };
+  }
+
+  // For horizontal layouts (LR/RL), prioritize horizontal handles
+  if (direction === 'LR' || direction === 'RL') {
+    if (dx > 50) {
+      return { sourceHandle: 'right-source', targetHandle: 'left' };
+    }
+    if (dx < -50) {
+      return { sourceHandle: 'left-source', targetHandle: 'right' };
+    }
+    if (Math.abs(dy) > Math.abs(dx)) {
+      return dy > 0
+        ? { sourceHandle: 'bottom-source', targetHandle: 'top' }
+        : { sourceHandle: 'top-source', targetHandle: 'bottom' };
+    }
+    return { sourceHandle: 'right-source', targetHandle: 'left' };
+  }
+
+  // Default fallback
+  return { sourceHandle: 'bottom-source', targetHandle: 'top' };
 }
 
 /**

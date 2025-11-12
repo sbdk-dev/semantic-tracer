@@ -217,7 +217,7 @@ export function DiagramCanvas() {
           attributionPosition="bottom-left"
         >
           <Background />
-          <Controls />
+          <Controls showInteractive={false} />
           <MiniMap />
           <Panel position="top-right">
             <button
