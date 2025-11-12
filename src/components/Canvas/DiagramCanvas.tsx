@@ -5,7 +5,7 @@
  * Handles rendering, interactions, and state management with Zustand.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -33,6 +33,9 @@ import { SaveIndicator } from './SaveIndicator';
 import { getLayoutedElements } from '../../services/layout';
 import { useDiagramState, EntityType, EntityNodeData } from '../../hooks/useDiagramState';
 import { useAutoSave } from '../../hooks/useAutoSave';
+import { useUndoRedo } from '../../hooks/useUndoRedo';
+import { useCopyPaste } from '../../hooks/useCopyPaste';
+import { useAlignment } from '../../hooks/useAlignment';
 
 // Define custom node types
 const nodeTypes: NodeTypes = {
@@ -69,6 +72,60 @@ export function DiagramCanvas() {
     debounceDelay: 2000, // 2 seconds
     enabled: true,
   });
+
+  // Undo/redo hook
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
+
+  // Copy/paste hook
+  const { copy, paste, duplicate, cut } = useCopyPaste();
+
+  // Alignment hook
+  const { align, hasSelection } = useAlignment();
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      // Don't trigger shortcuts when typing in input fields
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Ctrl+Z or Cmd+Z for Undo
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        undo();
+      }
+      // Ctrl+Y or Cmd+Shift+Z for Redo
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) {
+        event.preventDefault();
+        redo();
+      }
+      // Ctrl+C or Cmd+C for Copy
+      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        event.preventDefault();
+        copy();
+      }
+      // Ctrl+V or Cmd+V for Paste
+      if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+        event.preventDefault();
+        paste();
+      }
+      // Ctrl+X or Cmd+X for Cut
+      if ((event.ctrlKey || event.metaKey) && event.key === 'x') {
+        event.preventDefault();
+        cut();
+      }
+      // Ctrl+D or Cmd+D for Duplicate
+      if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+        event.preventDefault();
+        duplicate();
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, copy, paste, cut, duplicate]);
 
   // React Flow instance for viewport calculations
   const { project, screenToFlowPosition, fitView } = useReactFlow();
@@ -238,14 +295,118 @@ export function DiagramCanvas() {
           <Background />
           <Controls showInteractive={false} />
           <MiniMap />
+          {/* Alignment Tools */}
+          <Panel position="top-left">
+            <div className="bg-white rounded-md shadow-lg border border-gray-300 p-2">
+              <div className="text-xs font-medium text-gray-600 mb-2">Align</div>
+              <div className="flex gap-1 mb-2">
+                <button
+                  onClick={() => align('left')}
+                  disabled={!hasSelection}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Align Left"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="6" y1="6" x2="6" y2="18" strokeWidth="2" />
+                    <rect x="8" y="7" width="8" height="3" fill="currentColor" opacity="0.5" />
+                    <rect x="8" y="14" width="12" height="3" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => align('center-horizontal')}
+                  disabled={!hasSelection}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Center Horizontally"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="12" y1="6" x2="12" y2="18" strokeWidth="2" />
+                    <rect x="8" y="7" width="8" height="3" fill="currentColor" opacity="0.5" />
+                    <rect x="6" y="14" width="12" height="3" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => align('right')}
+                  disabled={!hasSelection}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Align Right"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="18" y2="18" strokeWidth="2" />
+                    <rect x="8" y="7" width="8" height="3" fill="currentColor" opacity="0.5" />
+                    <rect x="4" y="14" width="12" height="3" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => align('top')}
+                  disabled={!hasSelection}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Align Top"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="6" y1="6" x2="18" y2="6" strokeWidth="2" />
+                    <rect x="7" y="8" width="3" height="8" fill="currentColor" opacity="0.5" />
+                    <rect x="14" y="8" width="3" height="12" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => align('center-vertical')}
+                  disabled={!hasSelection}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Center Vertically"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="6" y1="12" x2="18" y2="12" strokeWidth="2" />
+                    <rect x="7" y="8" width="3" height="8" fill="currentColor" opacity="0.5" />
+                    <rect x="14" y="6" width="3" height="12" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => align('bottom')}
+                  disabled={!hasSelection}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Align Bottom"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="6" y1="18" x2="18" y2="18" strokeWidth="2" />
+                    <rect x="7" y="6" width="3" height="8" fill="currentColor" opacity="0.5" />
+                    <rect x="14" y="4" width="3" height="12" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </Panel>
+
+          {/* Action Buttons */}
           <Panel position="top-right">
-            <button
-              onClick={handleAutoLayout}
-              data-testid="auto-layout-button"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 shadow-lg"
-            >
-              Auto Layout
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => undo()}
+                disabled={!canUndo}
+                data-testid="undo-button"
+                className="bg-white text-gray-700 px-3 py-2 rounded-md hover:bg-gray-100 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+                title="Undo (Ctrl+Z)"
+              >
+                ↶ Undo
+              </button>
+              <button
+                onClick={() => redo()}
+                disabled={!canRedo}
+                data-testid="redo-button"
+                className="bg-white text-gray-700 px-3 py-2 rounded-md hover:bg-gray-100 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+                title="Redo (Ctrl+Y)"
+              >
+                ↷ Redo
+              </button>
+              <button
+                onClick={handleAutoLayout}
+                data-testid="auto-layout-button"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 shadow-lg"
+              >
+                Auto Layout
+              </button>
+            </div>
           </Panel>
         </ReactFlow>
 
