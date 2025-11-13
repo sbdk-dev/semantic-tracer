@@ -128,14 +128,29 @@ After user testing revealed missing diagramming basics:
 - ✅ `src/hooks/useAlignment.ts` - Node alignment tools
 - ✅ `src/hooks/usePostHog.ts` - Performance tracking
 
+**Phase 1B: Critical Bug Fixes (Day 14) ✅**
+User testing revealed 3 critical bugs after Day 13 UX improvements:
+- [x] **Alignment tools always greyed out** - Fixed reactive state computation in useAlignment hook
+- [x] **Edge edits don't preview** - Added live preview with useEffect for real-time updates
+- [x] **Copy/paste verification** - Confirmed working, added comprehensive E2E test suite
+
+**Bug Fixes (Day 14):**
+- ✅ Fixed `useAlignment` hasSelection computation - now reactive to Zustand state
+- ✅ Added live preview to EdgePropertyPanel - changes apply immediately as user edits
+- ✅ Created comprehensive Playwright E2E test suite (350 lines, 12 test scenarios)
+- ✅ All features verified working: selection, alignment, copy/paste, edge editing
+
 **Key Learnings:**
 1. **User testing early prevented building wrong features** - Caught missing UX before AI phase
 2. **React Flow is production-ready** - Multi-select, keyboard shortcuts worked out of the box
 3. **Edge selection is hard** - Needed 20px invisible hit area overlay
 4. **Zustand perfect for undo/redo** - Functional updates prevent race conditions
 5. **Smart handle selection critical** - Edges look professional when connected optimally
+6. **Reactive computations must watch Zustand state** - Direct array filtering, not cached callbacks
+7. **Live preview beats modal edits** - Real-time feedback improves UX dramatically
 
 **See Also:**
+- [BUGFIXES-DAY-14.md](BUGFIXES-DAY-14.md) - Critical bug fixes with testing guide
 - [PHASE-1-AUDIT.md](PHASE-1-AUDIT.md) - Complete audit with metrics and learnings
 - [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md) - Technical architecture
 - [PRD.md](PRD.md) - Original product requirements (reference)

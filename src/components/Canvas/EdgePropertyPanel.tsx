@@ -43,17 +43,17 @@ export function EdgePropertyPanel({ selectedEdge, onClose }: EdgePropertyPanelPr
     }
   }, [selectedEdge]);
 
-  if (!selectedEdge) {
-    return null;
-  }
+  // Live preview - update edge on canvas as user edits
+  useEffect(() => {
+    if (!selectedEdge) return;
 
-  const handleSave = () => {
     // Map line style to strokeDasharray
     let strokeDasharray: string | undefined;
     if (lineStyle === 'dashed') strokeDasharray = '5,5';
     else if (lineStyle === 'dotted') strokeDasharray = '2,2';
     else strokeDasharray = undefined;
 
+    // Update edge in real-time for live preview
     updateEdge(selectedEdge.id, {
       label,
       type: edgeType,
@@ -64,6 +64,15 @@ export function EdgePropertyPanel({ selectedEdge, onClose }: EdgePropertyPanelPr
       },
       animated,
     });
+  }, [label, edgeType, strokeWidth, strokeColor, lineStyle, animated, selectedEdge, updateEdge]);
+
+  if (!selectedEdge) {
+    return null;
+  }
+
+  const handleClose = () => {
+    // Changes are already applied via live preview useEffect
+    // Just close the panel
     onClose();
   };
 
@@ -214,16 +223,10 @@ export function EdgePropertyPanel({ selectedEdge, onClose }: EdgePropertyPanelPr
       {/* Actions */}
       <div className="mt-6 space-y-2">
         <button
-          onClick={handleSave}
+          onClick={handleClose}
           className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium"
         >
-          Save Changes
-        </button>
-        <button
-          onClick={onClose}
-          className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 font-medium"
-        >
-          Cancel
+          Done
         </button>
         <button
           onClick={handleDelete}

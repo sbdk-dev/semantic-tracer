@@ -189,7 +189,10 @@ export function useAlignment() {
     [getSelectedNodes, setNodes]
   );
 
-  const hasSelection = getSelectedNodes().length >= 2;
+  // Reactively compute hasSelection based on current nodes
+  // This must be recalculated whenever nodes array changes
+  const selectedCount = nodes.filter((n) => n.selected).length;
+  const hasSelection = selectedCount >= 2;
 
   return {
     align,
