@@ -21,8 +21,10 @@ import ReactFlow, {
   Node,
   Edge,
   useReactFlow,
+  SelectionMode,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import './DiagramCanvas.css';
 
 import { EntityNode } from './EntityNode';
 import { OwnershipEdge } from './OwnershipEdge';
@@ -168,9 +170,36 @@ export function DiagramCanvas() {
     [setEdges]
   );
 
+  // Validate connections (prevent self-loops and duplicate connections)
+  const isValidConnection = useCallback(
+    (connection: Connection) => {
+      // Prevent self-loops
+      if (connection.source === connection.target) {
+        return false;
+      }
+
+      // Check for duplicate connections
+      const isDuplicate = edges.some(
+        (edge) =>
+          edge.source === connection.source &&
+          edge.target === connection.target &&
+          edge.sourceHandle === connection.sourceHandle &&
+          edge.targetHandle === connection.targetHandle
+      );
+
+      return !isDuplicate;
+    },
+    [edges]
+  );
+
   // Handle new connections
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
+      if (!isValidConnection(connection)) {
+        console.log('Invalid connection - duplicate or self-loop');
+        return;
+      }
+
       const newEdge = {
         ...connection,
         id: `edge-${connection.source}-${connection.target}`,
@@ -185,7 +214,7 @@ export function DiagramCanvas() {
       };
       setEdges((eds) => addEdge(newEdge as any, eds));
     },
-    [setEdges]
+    [setEdges, isValidConnection]
   );
 
   // Handle adding nodes from palette
@@ -243,10 +272,22 @@ export function DiagramCanvas() {
     [screenToFlowPosition, addNode]
   );
 
+  // Track multi-selection state for UI hints
+  const [selectionInfo, setSelectionInfo] = useState<{
+    nodeCount: number;
+    edgeCount: number;
+  }>({ nodeCount: 0, edgeCount: 0 });
+
   // Handle node/edge selection
   const onSelectionChange = useCallback(
     (params: { nodes: Node[]; edges: Edge[] }) => {
-      // Prioritize node selection
+      // Update selection info for UI hints
+      setSelectionInfo({
+        nodeCount: params.nodes.length,
+        edgeCount: params.edges.length,
+      });
+
+      // Prioritize node selection for property panel
       if (params.nodes.length === 1 && params.nodes[0]) {
         setSelectedNode(params.nodes[0] as Node<EntityNodeData>);
         setSelectedEdge(null);
@@ -274,6 +315,7 @@ export function DiagramCanvas() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          isValidConnection={isValidConnection}
           onSelectionChange={onSelectionChange}
           onDrop={onDrop}
           onDragOver={onDragOver}
@@ -283,18 +325,49 @@ export function DiagramCanvas() {
             type: 'ownership',
             markerEnd: undefined, // No arrowheads - vertical position shows hierarchy
           }}
-          // Enable multi-select
-          selectionOnDrag={true}
+          // Selection configuration - intuitive multi-select behavior
+          selectionOnDrag={true} // Box selection with left mouse drag
+          selectionMode={SelectionMode.Partial} // Select nodes even if partially in selection box
+          selectionKeyCode="Shift" // Hold Shift for additive selection
+          multiSelectionKeyCode="Shift" // Hold Shift to add individual nodes to selection
           panOnDrag={[1, 2]} // Pan with middle or right mouse button
-          multiSelectionKeyCode="Shift" // Hold Shift to add to selection
+          selectNodesOnDrag={false} // Don't auto-select when dragging single node
           deleteKeyCode={["Backspace", "Delete"]} // Delete selected items
-          selectNodesOnDrag={false} // Don't select when dragging single node
           fitView
           attributionPosition="bottom-left"
         >
           <Background />
           <Controls showInteractive={false} />
           <MiniMap />
+
+          {/* Selection Info Panel - Helpful user guidance */}
+          {(selectionInfo.nodeCount > 0 || selectionInfo.edgeCount > 0) && (
+            <Panel position="top-center">
+              <div className="bg-blue-50 border border-blue-300 rounded-md px-4 py-2 shadow-lg">
+                <div className="text-sm font-medium text-blue-900">
+                  {selectionInfo.nodeCount > 0 && (
+                    <span>
+                      {selectionInfo.nodeCount} node{selectionInfo.nodeCount > 1 ? 's' : ''} selected
+                    </span>
+                  )}
+                  {selectionInfo.nodeCount > 0 && selectionInfo.edgeCount > 0 && <span> • </span>}
+                  {selectionInfo.edgeCount > 0 && (
+                    <span>
+                      {selectionInfo.edgeCount} edge{selectionInfo.edgeCount > 1 ? 's' : ''} selected
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-blue-700 mt-1">
+                  {selectionInfo.nodeCount >= 2 ? (
+                    <span>Use alignment tools (left) • Ctrl+C to copy • Ctrl+D to duplicate</span>
+                  ) : (
+                    <span>Shift+click for multi-select • Drag to box select • Double-click to edit</span>
+                  )}
+                </div>
+              </div>
+            </Panel>
+          )}
+
           {/* Alignment Tools */}
           <Panel position="top-left">
             <div className="bg-white rounded-md shadow-lg border border-gray-300 p-2">

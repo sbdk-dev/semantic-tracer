@@ -122,18 +122,66 @@ export const EntityNode = memo(({ data, id, type }: NodeProps<EntityNodeData>) =
         borderColor: data.borderColor,
       }}
     >
-      {/* Connection handles on all sides */}
-      <Handle type="target" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Top} id="top-source" />
+      {/* Connection handles on all sides - larger hit areas for easier connections */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ top: -8 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-source"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ top: -8 }}
+      />
 
-      <Handle type="target" position={Position.Bottom} id="bottom" />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ bottom: -8 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom-source"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ bottom: -8 }}
+      />
 
-      <Handle type="target" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Left} id="left-source" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ left: -8 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ left: -8 }}
+      />
 
-      <Handle type="target" position={Position.Right} id="right" />
-      <Handle type="source" position={Position.Right} id="right-source" />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ right: -8 }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className="!w-4 !h-4 !border-2 !border-blue-500 !bg-white hover:!bg-blue-100 hover:!scale-125 transition-all"
+        style={{ right: -8 }}
+      />
 
       <div className="text-xs text-gray-500 mb-1">{getEntityTypeLabel()}</div>
 
