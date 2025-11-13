@@ -32,6 +32,10 @@ dist-ssr
 
 # Testing
 coverage
+test-results
+playwright-report
+.playwright
 
 # Build
 build
+*.tsbuildinfo
