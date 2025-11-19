@@ -365,7 +365,6 @@ function App() {
           <LineageCanvas
             parseResult={parseResult}
             onNodeClick={handleNodeClick}
-            selectedNodeId={selectedNode?.id}
           />
           {isLoading && (
             <div className="absolute inset-0 bg-white/50 flex items-center justify-center">

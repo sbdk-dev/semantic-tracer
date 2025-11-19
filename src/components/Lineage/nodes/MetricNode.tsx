@@ -6,6 +6,8 @@ import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import type { LineageNodeData } from '../../../types/semantic';
 
+const toStr = (val: unknown): string => String(val || '');
+
 export const MetricNode = memo(({ data, selected }: NodeProps<LineageNodeData>) => {
   return (
     <div
@@ -36,11 +38,11 @@ export const MetricNode = memo(({ data, selected }: NodeProps<LineageNodeData>) 
         </div>
       )}
 
-      {data.metadata?.metric_type && (
+      {data.metadata?.metric_type ? (
         <div className="text-xs text-purple-600 mt-1">
-          {String(data.metadata.metric_type)}
+          {toStr(data.metadata.metric_type)}
         </div>
-      )}
+      ) : null}
 
       <Handle
         type="source"

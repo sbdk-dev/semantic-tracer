@@ -26,7 +26,6 @@ import { getLayoutedElements } from '../../services/layout';
 import type {
   ParseResult,
   LineageNode as LineageNodeType,
-  LineageEdge as LineageEdgeType,
   LineageNodeData,
 } from '../../types/semantic';
 
@@ -43,13 +42,11 @@ const nodeTypes = {
 interface LineageCanvasProps {
   parseResult: ParseResult;
   onNodeClick?: (node: LineageNodeType) => void;
-  selectedNodeId?: string;
 }
 
 export function LineageCanvas({
   parseResult,
   onNodeClick,
-  selectedNodeId,
 }: LineageCanvasProps) {
   // Convert lineage data to React Flow format
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -87,7 +84,7 @@ export function LineageCanvas({
     }));
 
     // Apply automatic layout
-    const layouted = getLayoutedElements(nodes, edges, 'TB');
+    const layouted = getLayoutedElements(nodes, edges, { direction: 'TB' });
 
     return {
       initialNodes: layouted.nodes,
@@ -95,8 +92,8 @@ export function LineageCanvas({
     };
   }, [parseResult]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   // Handle node click
   const handleNodeClick = useCallback(

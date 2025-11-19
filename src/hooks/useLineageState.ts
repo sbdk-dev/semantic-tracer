@@ -7,7 +7,6 @@ import type {
   ParseResult,
   ProjectConfig,
   LineageNode,
-  AuditIssue,
 } from '../types/semantic';
 
 interface LineageState {
