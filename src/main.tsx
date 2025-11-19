@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App';
+// Using semantic tracer app instead of legal diagram app
+import App from './App.semantic';
 import './index.css';
 
 const rootElement = document.getElementById('root');

@@ -1,0 +1,48 @@
+[package]
+name = "semantic-tracer"
+version = "0.1.0"
+description = "Semantic Layer Metrics Lineage Tracer"
+authors = ["matt-strautmann"]
+license = "MIT"
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "semantic_tracer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.1" }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.9.2" }
+tauri-plugin-log = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+
+# YAML parsing for semantic layer configs
+serde_yaml = "0.9"
+
+# File system and path handling
+walkdir = "2.4"
+glob = "0.3"
+
+# Async runtime for file operations
+tokio = { version = "1", features = ["full"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Regex for SQL parsing
+regex = "1.10"
+
+# UUID for node IDs
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Graph data structure for lineage
+petgraph = "0.6"
