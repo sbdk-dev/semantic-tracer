@@ -7,13 +7,20 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./lawdraw/tests/setup.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'lawdraw/tests/e2e/**',
+      './archive/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
         'tests/',
+        'lawdraw/tests/e2e',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData',
@@ -38,7 +45,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@tests': path.resolve(__dirname, './tests'),
+      '@tests': path.resolve(__dirname, './lawdraw/tests'),
     },
   },
 });
